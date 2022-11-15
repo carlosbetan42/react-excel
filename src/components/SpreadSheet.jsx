@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { useSpreadSheet } from '../hooks/useSpreadSheet';
-
-const FIRST_CHAR_CODE = 65;
+import { getColumn } from '../../utils';
 
 const range = (length) => Array.from({ length }, (_, i) => i);
-const getColumn = (i) => String.fromCharCode(FIRST_CHAR_CODE + i);
 
 const SpreadSheet = ({ rows, columns }) => {
   const { cells, updateCell } = useSpreadSheet({ rows, columns });
@@ -25,7 +23,7 @@ const SpreadSheet = ({ rows, columns }) => {
         {range(rows).map((row) => (
           <tr key={row}>
             <td className='bg-slate-300' key={row}>
-              {row + 1}
+              {row}
             </td>
             {range(columns).map((column) => (
               <td key={column}>
@@ -55,7 +53,7 @@ const Cell = ({ x, y, cell, update }) => {
     return (
       <input
         autoFocus
-        defaultValue={cell}
+        defaultValue={cell.value}
         onBlur={(e) => {
           setIsInput(false);
           update(e.target.value);
@@ -67,7 +65,7 @@ const Cell = ({ x, y, cell, update }) => {
 
   return (
     <span className='w-full block' onClick={() => setIsInput(true)}>
-      {cell}
+      {cell.computedValue}
     </span>
   );
 };

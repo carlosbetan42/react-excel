@@ -1,9 +1,57 @@
 import { useReducer } from 'react';
+import { getColumn } from '../../utils';
 
 const getInitialState = ({ columns, rows }) => {
-  const cells = Array.from({ length: columns }, () => Array.from({ length: rows }, () => 0));
+  const cells = Array.from({ length: columns }, () =>
+    Array.from({ length: rows }, () => ({ computedValue: 0, value: 0 }))
+  );
 
   return { cells };
+};
+
+const generateCode = (value, constants) => {
+  return `(() => {
+    ${constants}
+    return ${value};
+  })()`;
+};
+const generateCellsContansts = (cells) => {
+  return cells
+    .map((rows, x) => {
+      return rows
+        .map((cell, y) => {
+          const letter = getColumn(x);
+          const cellId = `${letter}${y}`; // A1, B1, etc
+          return `const ${cellId} = ${cell.computedValue};`;
+        })
+        .join('\n');
+    })
+    .join('\n');
+};
+
+const computeValue = (value, constants) => {
+  if (!value.startsWith?.('=')) {
+    return value;
+  }
+  const valueToUse = value.substring(1);
+
+  let computedValue;
+  try {
+    // eslint-disable-next-line no-eval
+    computedValue = eval(generateCode(valueToUse, constants));
+  } catch (e) {
+    computedValue = `!ERROR ${e.message}`;
+  }
+  return computedValue;
+};
+
+const computeAllCells = (cells, constants) => {
+  cells.forEach((row) => {
+    row.forEach((cell) => {
+      const computedValue = computeValue(cell.value, constants);
+      cell.computedValue = computedValue;
+    });
+  });
 };
 
 const reducer = (state, action) => {
@@ -13,7 +61,16 @@ const reducer = (state, action) => {
     const cells = structuredClone(state.cells);
     const { x, y, value } = payload;
 
-    cells[x][y] = value;
+    const constants = generateCellsContansts(cells);
+
+    const cell = cells[x][y];
+
+    const computedValue = computeValue(value, constants);
+
+    cell.value = value;
+    cell.computedValue = computedValue;
+
+    computeAllCells(cells, generateCellsContansts(cells));
 
     return { cells };
   }
