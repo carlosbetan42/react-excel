@@ -52,6 +52,7 @@ const Cell = ({ x, y, cell, update }) => {
   if (isInput) {
     return (
       <input
+        data-testid={`input-${y}-${x}`}
         autoFocus
         defaultValue={cell.value}
         onBlur={(e) => {
@@ -64,7 +65,7 @@ const Cell = ({ x, y, cell, update }) => {
   }
 
   return (
-    <span className='w-full block' onClick={() => setIsInput(true)}>
+    <span data-testid={`span-${y}-${x}`} className='w-full block' onClick={() => setIsInput(true)}>
       {cell.computedValue}
     </span>
   );
